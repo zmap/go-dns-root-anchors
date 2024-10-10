@@ -2,6 +2,7 @@ package rootanchors
 
 import (
 	"encoding/xml"
+	"time"
 
 	"github.com/miekg/dns"
 )
@@ -63,11 +64,15 @@ func GetRawAnchors() TrustAnchor {
 }
 
 // GetDSRecords returns root anchors as DS records defined by miekg/dns.
-func GetDSRecords() map[uint16]dns.DS {
+func GetValidDSRecords() map[uint16]dns.DS {
 	ta := GetRawAnchors()
 
 	dsRecords := make(map[uint16]dns.DS)
 	for _, kd := range ta.KeyDigests {
+		if !isKeyDigestValid(kd) {
+			continue
+		}
+
 		dsRecords[kd.KeyTag] = dns.DS{
 			Hdr:        dns.RR_Header{Name: ta.Zone},
 			KeyTag:     kd.KeyTag,
@@ -78,4 +83,22 @@ func GetDSRecords() map[uint16]dns.DS {
 	}
 
 	return dsRecords
+}
+
+func isKeyDigestValid(kd KeyDigest) bool {
+	validFrom, err := time.Parse(time.RFC3339, kd.ValidFrom)
+	if err != nil {
+		return false
+	}
+
+	if kd.ValidUntil == "" {
+		return time.Now().After(validFrom)
+	}
+
+	validUntil, err := time.Parse(time.RFC3339, kd.ValidUntil)
+	if err != nil {
+		return false
+	}
+
+	return time.Now().After(validFrom) && time.Now().Before(validUntil)
 }

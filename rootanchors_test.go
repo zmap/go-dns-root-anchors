@@ -17,7 +17,7 @@ func TestRootDNSKEYValidation(t *testing.T) {
 	}
 	t.Logf("DNSKEY records: %v", dnsKeys)
 
-	dsRecords := rootanchors.GetDSRecords()
+	dsRecords := rootanchors.GetValidDSRecords()
 	if err != nil {
 		t.Fatalf("Failed to get DS records from trust anchor: %v", err)
 	}
