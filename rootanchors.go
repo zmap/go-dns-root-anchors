@@ -9,7 +9,8 @@ import (
 
 // https://data.iana.org/root-anchors/root-anchors.xml
 // BEGIN IANA ROOT ANCHORS XML DATA
-const ianaRootAnchorsXml = `<?xml version="1.0" encoding="UTF-8"?>
+
+const IanaRootAnchorsXml = `<?xml version="1.0" encoding="UTF-8"?>
 <TrustAnchor id="E9724F53-1851-4F86-85E5-F1392102940B" source="http://data.iana.org/root-anchors/root-anchors.xml">
 <Zone>.</Zone>
 <KeyDigest id="Kjqmt7v" validFrom="2010-07-15T00:00:00+00:00" validUntil="2019-01-11T00:00:00+00:00">
@@ -58,7 +59,7 @@ type KeyDigest struct {
 func GetRawAnchors() TrustAnchor {
 	var ta TrustAnchor
 
-	xml.Unmarshal([]byte(ianaRootAnchorsXml), &ta)
+	xml.Unmarshal([]byte(IanaRootAnchorsXml), &ta)
 
 	return ta
 }

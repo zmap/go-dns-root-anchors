@@ -1,0 +1,29 @@
+name: Update Root Zone Trust Anchors
+
+on:
+  schedule:
+    - cron: "5 4 * * *"
+  workflow_dispatch:
+
+jobs:
+  update-xml:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Update XML in Go file
+        run: |
+          xml_content=$(curl -sSL https://data.iana.org/root-anchors/root-anchors.xml | sed -e 's/[\/&]/\\&/g' -e ':a;N;$!ba;s/\n/\\n/g')
+          sed -i '/\/\/ BEGIN IANA ROOT ANCHORS XML DATA/,/\/\/ END XML DATA/c\// BEGIN IANA ROOT ANCHORS XML DATA\nconst IanaRootAnchorsXml = `'"$xml_content"'`\n\n// END XML DATA' rootanchors.go
+          cat rootanchors.go
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          commit-message: "chore: update root zone trust anchors"
+          title: Update Root Zone Trust Anchors
+          body: |
+            This PR updates root zone trust anchors XML. Please verify the changes.
+          branch: update-xml
