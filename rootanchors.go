@@ -56,6 +56,8 @@ type KeyDigest struct {
 	Algorithm  uint8  `xml:"Algorithm"`
 	DigestType uint8  `xml:"DigestType"`
 	Digest     string `xml:"Digest"`
+	PublicKey  string `xml:"PublicKey,omitempty"`
+	Flags      uint16 `xml:"Flags,omitempty"`
 }
 
 // GetRawAnchors returns the raw XML data parsed into a TrustAnchor struct.
@@ -73,12 +75,12 @@ func GetValidDSRecords() map[uint16]dns.DS {
 
 	dsRecords := make(map[uint16]dns.DS)
 	for _, kd := range ta.KeyDigests {
-		if !isKeyDigestValid(kd) {
+		if !kd.isValid() {
 			continue
 		}
 
 		dsRecords[kd.KeyTag] = dns.DS{
-			Hdr:        dns.RR_Header{Name: ta.Zone},
+			Hdr:        dns.RR_Header{Name: ta.Zone, Rrtype: dns.TypeDS, Class: dns.ClassINET},
 			KeyTag:     kd.KeyTag,
 			Algorithm:  kd.Algorithm,
 			DigestType: kd.DigestType,
@@ -89,7 +91,29 @@ func GetValidDSRecords() map[uint16]dns.DS {
 	return dsRecords
 }
 
-func isKeyDigestValid(kd KeyDigest) bool {
+// GetValidDNSKEYRecords returns root anchors as DNSKEY records defined by miekg/dns.
+func GetValidDNSKEYRecords() map[uint16]*dns.DNSKEY {
+	ta := GetRawAnchors()
+
+	dnskeyRecords := make(map[uint16]*dns.DNSKEY)
+	for _, kd := range ta.KeyDigests {
+		if !kd.isValid() || kd.PublicKey == "" {
+			continue
+		}
+
+		dnskeyRecords[kd.KeyTag] = &dns.DNSKEY{
+			Hdr:       dns.RR_Header{Name: ta.Zone, Rrtype: dns.TypeDNSKEY, Class: dns.ClassINET},
+			Flags:     kd.Flags,
+			Protocol:  3, // RFC4034 Section 2.1.2
+			Algorithm: kd.Algorithm,
+			PublicKey: kd.PublicKey,
+		}
+	}
+
+	return dnskeyRecords
+}
+
+func (kd KeyDigest) isValid() bool {
 	validFrom, err := time.Parse(time.RFC3339, kd.ValidFrom)
 	if err != nil {
 		return false
