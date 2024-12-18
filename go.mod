@@ -1,6 +1,6 @@
 module github.com/zmap/go-dns-root-anchors
 
-go 1.21.1
+go 1.20
 
 require github.com/miekg/dns v1.1.62
 
