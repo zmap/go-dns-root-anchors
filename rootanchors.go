@@ -4,7 +4,7 @@ import (
 	"encoding/xml"
 	"time"
 
-	"github.com/miekg/dns"
+	"github.com/zmap/dns"
 )
 
 // https://data.iana.org/root-anchors/root-anchors.xml
