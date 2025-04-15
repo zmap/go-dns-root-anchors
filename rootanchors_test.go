@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/miekg/dns"
+	"github.com/zmap/dns"
 	rootanchors "github.com/zmap/go-dns-root-anchors"
 )
 
